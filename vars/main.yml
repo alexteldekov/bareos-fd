@@ -1,0 +1,4 @@
+---
+
+bareos_client_name: '{{ inventory_hostname }}'
+bareos_dir_password: "zzz"
