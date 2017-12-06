@@ -1,0 +1,164 @@
+Job {
+  Name = {{ bareos_client_name }}
+  Messages = Standard
+  Pool = {{ bareos_client_name }}-pool
+  Type = Backup
+  Enabled = No # CHANGE
+  Level = Full
+  Client = {{ bareos_client_name }}-fd
+  FileSet = {{ bareos_client_name }}-fileset
+  Schedule = {{ bareos_client_name }}-schedule
+  Rerun Failed Levels = Yes
+}
+
+FileSet {
+  Name = {{ bareos_client_name }}-fileset
+# do not run full backup after list change
+# Ignore FileSet Changes = Yes
+  Include {
+    Options {
+      compression = GZIP
+      signature = SHA1
+      aclsupport = yes
+      noatime = yes
+      checkfilechanges = yes
+    }
+# each FS separate
+    # CHANGE
+    File = /etc
+    File = /home
+  }
+  Exclude {
+    File = /proc
+    File = /sys
+    File = /net
+    File = /media
+# devfs
+#    File = /dev
+# others
+    File = /dev/pts
+    File = /dev/shm
+    File = /tmp
+    File = /var/cache/yum
+    File = /.journal
+    File = /.fsck
+    File = /var/lib/nfs/rpc_pipefs
+    File = /.autofsck
+    File = /selinux
+    File = /var/named/chroot/proc
+  }
+}
+
+#FileSet {      # WINDOWS
+#  Name = {{ bareos_client_name }}-fileset
+## do not run full backup after list change
+## Ignore FileSet Changes = Yes
+#  Enable VSS = Yes
+#  Include {
+#    Options {
+#      compression = LZFAST
+#      signature = SHA1
+#      onefs = no
+#      #onefs = yes
+#      noatime = yes
+#      checkfilechanges = yes
+#      DriveType = fixed
+#      Ignore Case = yes
+#      wildfile = "*.avi"
+#      wildfile = "*.wmv"
+#      wildfile = "*.mp3"
+#      wildfile = "[A-Z]:/pagefile.sys"
+#      wildfile = "[A-Z]:/hiberfil.sys"
+#      wilddir = "[A-Z]:/recycler"
+#      wilddir = "[A-Z]:/$recycle.bin"
+#      wilddir = "[A-Z]:/System Volume Information"
+#      wilddir = "[A-Z]:/TEMP"
+#      wildfile = "*.mdf"
+#      wildfile = "*.ldf"
+#      wildfile = "*.ndf"
+#      exclude = yes
+#    }
+#    File = /
+#    #File = "f:/"
+#  }
+#}
+
+Schedule {
+  Name = {{ bareos_client_name }}-schedule
+  Run = Level=Full fri at 0:00                  # CHANGE
+  Run = Level=Incremental sat-thu at 0:00       # CHANGE
+}
+
+Client {
+  Name = {{ bareos_client_name }}-fd
+  Address = {{ bareos_client_name }}
+  Password = {{ bareos_dir_password }}
+  AutoPrune = yes
+  File Retention = 1 month      # CHANGE
+  Job Retention = 1 month       # CHANGE
+}
+
+Storage {
+  Name = {{ bareos_client_name }}-storage
+  # CHANGE
+  #Address = srv.domain.com
+  Address = srv1.domain.com
+  #Password = "xxx"
+  Password = "yyy"
+  Device = FileStorage  # CHANGE FileStorage_00 FileStorage_01 FileStorage0 FileStorage002 FileStorage003
+  Media Type = File     # CHANGE File_00 File_01 File File002 File003
+  #pre-compressed backups (e.g. oracle)
+  #Allow Compression = no
+}
+
+Pool {
+  Name = {{ bareos_client_name }}-pool
+  Maximum Volume Jobs = 1
+  Volume Retention = 1 months   # CHANGE
+  Recycle Oldest Volume = yes
+  Label Format = {{ bareos_client_name }}-
+  Storage = {{ bareos_client_name }}-storage
+#  Next Pool = _{{ bareos_client_name }}-pool   # CHANGE
+}
+
+#
+# MEDIA COPYING CONFIGURATION
+#
+
+#Storage {
+#  Name = _{{ bareos_client_name }}-storage
+#  # CHANGE
+#  #Address = srv.domain.com
+#  Address = srv1.domain.com
+#  #Password = "xxx"
+#  Password = "yyy"
+#  Device = _FileStorage        # CHANGE FileStorage_00 FileStorage_01 FileStorage0 FileStorage002 FileStorage003
+#  Media Type = _File   # CHANGE File_00 File_01 File File002 File003
+#  #pre-compressed backups (e.g. oracle)
+#  #Allow Compression = no
+#}
+#
+#Pool {
+#  Name = _{{ bareos_client_name }}-pool
+#  Maximum Volume Jobs = 1
+#  Volume Retention = 1 months  # CHANGE
+#  Recycle Oldest Volume = yes
+#  Label Format = {{ bareos_client_name }}-
+#  Storage = _{{ bareos_client_name }}-storage
+#}
+#
+#Schedule {
+#  Name = _{{ bareos_client_name }}-schedule
+#  Run = Level=Full mon-sun at 12:00
+#}
+#
+#Job {
+#  Name = _{{ bareos_client_name }}
+#  Messages = Standard
+#  Pool = {{ bareos_client_name }}-pool
+#  Type = Copy
+##  Enabled = No
+#  Priority = 20
+#  Schedule = _{{ bareos_client_name }}-schedule
+#  Selection Type = PoolUncopiedJobs
+#}
