@@ -1,0 +1,30 @@
+- name: Add bareos repo
+  yum_repository:
+    file: bareos
+    name: bareos_bareos-latest
+    description: bareos bareos-latest ({{ ansible_distribution }}_{{ ansible_distribution_major_version }})
+    baseurl: http://download.bareos.org/bareos/release/latest/{{ ansible_distribution }}_{{ ansible_distribution_major_version }}
+    gpgcheck: yes
+    gpgkey: http://download.bareos.org/bareos/release/latest/{{ ansible_distribution }}_{{ ansible_distribution_major_version }}/repodata/repomd.xml.key
+
+- name: Install bareos client
+  yum:
+    name: bareos-fd
+    state: latest
+
+- name: Check if firewall rules exist
+  shell: iptables -S | grep '^-[AI]'
+  register: iptables_check
+  # grep will exit with 1 when no results found. 
+  # This causes the task not to halt play.
+  ignore_errors: true
+
+- name: Configure firewalld
+  firewalld:
+    service: bacula-client
+    permanent: true
+    state: enabled
+    zone: ssh_access
+  when: ( iptables_check|succeeded ) and ( ansible_distribution_major_version >= '7' )
+  notify:
+    - restart firewalld
