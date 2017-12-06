@@ -1,0 +1,17 @@
+- name: Add bareos key (xUbuntu)
+  apt_key: url="http://download.bareos.org/bareos/release/latest/x{{ ansible_distribution }}_{{ ansible_distribution_version }}/Release.key"
+
+- name: Add bareos repo (xUbuntu)
+  apt_repository: repo="deb http://download.bareos.org/bareos/release/latest/x{{ ansible_distribution }}_{{ ansible_distribution_version }}/ /"
+
+- name: Install bareos client (xUbuntu)
+  apt:
+    name: bareos-filedaemon
+    state: latest
+    update_cache: yes
+
+- name: Configure ufw
+  ufw:
+    rule: allow
+    port: 9102
+    proto: tcp
