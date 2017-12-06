@@ -1,0 +1,35 @@
+---
+
+- name: Include distribution specific variables
+  include_vars: "{{ ansible_distribution }}.yml"
+
+- include_tasks: "{{ ansible_distribution }}.yml"
+
+- name: Configure bareos client service
+  service:
+    name: "{{ bareos_client_service_name }}"
+    enabled: yes
+
+- name: Set client name
+  replace:
+    path: /etc/bareos/bareos-fd.d/client/myself.conf
+    regexp: '(Name = ).*'
+    replace: \1{{ bareos_client_name }}-fd
+  notify:
+    - restart bareos-fd
+
+- name: Set director password
+  replace:
+    path: /etc/bareos/bareos-fd.d/director/bareos-dir.conf
+    regexp: '(Password = ).*'
+    replace: \1{{ bareos_dir_password }}
+  notify:
+    - restart bareos-fd
+
+- name: Configure client on the director
+  local_action:
+    module: template
+    src: director-client.conf.j2
+    dest: "/etc/bareos/bareos-dir.d/client/{{ bareos_client_name }}-fd.conf"
+    force: no
+    mode: 0644
