@@ -1,0 +1,7 @@
+---
+
+- name: restart bareos-fd
+  service: name={{ bareos_client_service_name }} state=restarted
+
+- name: restart firewalld
+  service: name=firewalld state=restarted
