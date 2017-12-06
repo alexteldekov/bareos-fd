@@ -1,0 +1,21 @@
+- name: Add bareos repo (11)
+  zypper_repository:
+    name: bareos-repo
+    repo: http://download.bareos.org/bareos/release/latest/SLE_11_SP4/
+    auto_import_keys: yes
+  when: ansible_distribution_major_version == '11'
+
+- name: Add bareos repo (12)
+  zypper_repository:
+    name: bareos-repo
+    repo: http://download.bareos.org/bareos/release/latest/SLE_12_SP1/
+    auto_import_keys: yes
+  when: ansible_distribution_major_version == '12'
+
+- name: Install bareos client
+  zypper:
+    name: bareos-filedaemon
+    state: latest
+
+- name: Configure SuSEfirewall2
+  shell: grep -q 'FW_SERVICES_EXT_TCP=.*\W9102\W' /etc/sysconfig/SuSEfirewall2 || (SuSEfirewall2 open EXT TCP 9102 ; SuSEfirewall2)
